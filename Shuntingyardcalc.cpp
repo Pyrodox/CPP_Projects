@@ -1,18 +1,30 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-double operation(char c, double v1, double v2)
+constexpr unsigned int str2int(const char* str, int h = 0)
 {
-    switch(c) {
-        case '+':
+    return !str[h] ? 5381 : (str2int(str, h+1) * 33) ^ str[h];
+}
+
+bool isNumber(const std::string& s){
+   if(s.empty() || std::isspace(s[0]) || std::isalpha(s[0])) return false ;
+   char * p ;
+   strtod(s.c_str(), &p) ;
+   return (*p == 0) ;
+}
+
+double operation(string s, double v1, double v2)
+{
+    switch(str2int(s.c_str())) {
+        case str2int("+"):
             return v1 + v2; break;
-        case '-':
+        case str2int("-"):
             return v1 - v2; break;
-        case '*':
+        case str2int("*"):
             return v1 * v2; break;
-        case '/':
+        case str2int("/"):
             return v1 / v2; break;
-        case '^':
+        case str2int("^"):
             return pow(v1, v2); break;
         /*case '!':
             return tgamma(v1 + 1); break;*/
@@ -20,39 +32,61 @@ double operation(char c, double v1, double v2)
             cout << "???\n";
     }
 
-    return -1.0;
+    return 1;
+}
+bool isoperator(string s)
+{
+    vector<char> v {'+', '-', '*', '/', '^'}; //operators
+
+    return find(v.begin(), v.end(), s) != v.end();
 }
 
-int main()
+double evaluate(queue<string> q)
 {
-    vector<char> v {'+', '-', '*', '/', '^', '!'}; //operators
-    map<char, int> m {{'+', 0}, {'-', 0}, {'*', 1}, {'/', 1}, {'^', 2}, {'(', 4}, {')', 4}}; //operator precedence
-    map<char, char> assoc {{'+', 'l'},  {'-', 'l'}, {'*', 'l'}, {'/', 'l'}, {'^', 'r'}, {'(', 'l'}, {')', 'l'}}; //operator associativity
+    stack<double> newstack;
+    for (int i = 0; i < q.size(); ++i) {
+        if (isNumber(q.front())) {
+            newstack.push(stod(q.front()));
+        }
+        //continue later
+        else if (isoperator(q.front())) {
+            double val1 = newstack.top();
+            newstack.pop();
+            double val2 = newstack.top();
+            newstack.pop();
+            newstack.push(operation(q.front(), val1, val2));
+        }
+    }
 
-    stack<char> operate;
-    queue<char> que;
-    string input;
-    cin >> input;
+    return newstack.top();
+}
+
+double parse(string input)
+{
+    map<string, int> m {{"+", 0}, {"-", 0}, {"*", 1}, {"/", 1}, {"^", 2}, {"(", 4}, {")", 4}}; //operator precedence
+    map<string, char> assoc {{"+", 'l'},  {"-", 'l'}, {"*", 'l'}, {"/", 'l'}, {"^", 'r'}, {"(", 'l'}, {")", 'l'}}; //operator associativity
+
+    stack<string> operate;
+    queue<string> que;
 
     for (int i = 0; i < input.length(); ++i) {
-        char const &c = input.at(i);
-        if (isdigit(c)) {
-            que.push(c);
+        string s = input.substr(i, i + 1);
+        if (isNumber(s)) {
+            que.push(s);
         }
         //add function option later, not ready yet
-        else if (find(v.begin(), v.end(), c) != v.end()) { //checking if c is an operator
-            while (operate.top() != '(' && 
-            (m[operate.top()] > m[c] || (m[c] == m[operate.top()] && assoc[c] == 'l'))) { //should be checking if c is left associative
+        else if (isoperator(s)) { //checking if c is an operator
+            while (operate.size() != 0 && operate.top() != "(" && (m[operate.top()] > m[s] || ((m[s] == m[operate.top()] && assoc[s] == 'l')))) { 
                 que.push(operate.top());
                 operate.pop();
             }
-            operate.push(c);
+            operate.push(s);
         }
-        else if (c == '(') {
-            operate.push(c);
+        else if (s == "(") {
+            operate.push(s);
         }
-        else if (c == ')') {
-            while (operate.top() != '(') {
+        else if (s == ")") {
+            while (operate.top() != "(") {
                 que.push(operate.top());
                 operate.pop();
             }
@@ -60,24 +94,21 @@ int main()
             //add if statement for function
         }
     }
+    
     for (int i = 0; i < operate.size(); ++i) {
         que.push(operate.top());
         operate.pop();
     }
-    stack<double> newstack;
-    for (int i = 0; i < que.size(); ++i) {
-        if (isdigit(que.front())) {
-            newstack.push((double) que.front());
-        }
-        //continue later
-        else if (find(v.begin(), v.end(), que.front()) != v.end()) {
-            double val1 = newstack.top();
-            newstack.pop();
-            double val2 = newstack.top();
-            newstack.pop();
-            newstack.push(operation(que.front(), val1, val2));
-        }
-    }
+
+    return evaluate(que);
+}
+
+int main()
+{
+    cout << "Enter: ";
+    string input;
+    getline(cin, input);
+    input.erase(remove_if(input.begin(), input.end(), ::isspace), input.end());
     
-    cout << newstack.top() << "\n";
+    cout << parse(input) << "\n";
 }
