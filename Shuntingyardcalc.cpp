@@ -6,11 +6,15 @@ constexpr unsigned int str2int(const char* str, int h = 0)
     return !str[h] ? 5381 : (str2int(str, h+1) * 33) ^ str[h];
 }
 
-bool isNumber(const std::string& s){
-   if(s.empty() || std::isspace(s[0]) || std::isalpha(s[0])) return false ;
-   char * p ;
-   strtod(s.c_str(), &p) ;
-   return (*p == 0) ;
+bool isNumber(const string& s)
+{
+   if(s.empty() || ::isspace(s[0]) || isalpha(s[0])) {
+       return false;
+   }
+   char *p;
+   strtod(s.c_str(), &p);
+
+   return (*p == 0);
 }
 
 double operation(string s, double v1, double v2)
@@ -26,7 +30,7 @@ double operation(string s, double v1, double v2)
             return v1 / v2; break;
         case str2int("^"):
             return pow(v1, v2); break;
-        /*case '!':
+        /*case str2int("!"):
             return tgamma(v1 + 1); break;*/
         default:
             cout << "???\n";
@@ -36,7 +40,14 @@ double operation(string s, double v1, double v2)
 }
 bool isoperator(string s)
 {
-    vector<char> v {'+', '-', '*', '/', '^'}; //operators
+    vector<string> v {"+", "-", "*", "/", "^"};
+
+    return find(v.begin(), v.end(), s) != v.end();
+}
+
+bool isfunction(string s)
+{
+    vector<string> v {"sin", "cos", "tan", "ln", "log", "sqrt", "!", "cbrt", "abs", "asin", "acos", "atan"};
 
     return find(v.begin(), v.end(), s) != v.end();
 }
@@ -44,9 +55,11 @@ bool isoperator(string s)
 double evaluate(queue<string> q)
 {
     stack<double> newstack;
-    for (int i = 0; i < q.size(); ++i) {
+    const int qsize = q.size();
+    for (int i = 0; i < qsize; ++i) {
         if (isNumber(q.front())) {
             newstack.push(stod(q.front()));
+            q.pop();
         }
         //continue later
         else if (isoperator(q.front())) {
@@ -54,29 +67,34 @@ double evaluate(queue<string> q)
             newstack.pop();
             double val2 = newstack.top();
             newstack.pop();
-            newstack.push(operation(q.front(), val1, val2));
+            newstack.push(operation(q.front(), val2, val1));
+            q.pop();
         }
     }
 
     return newstack.top();
 }
 
-double parse(string input)
+queue<string> parse(string input)
 {
     map<string, int> m {{"+", 0}, {"-", 0}, {"*", 1}, {"/", 1}, {"^", 2}, {"(", 4}, {")", 4}}; //operator precedence
     map<string, char> assoc {{"+", 'l'},  {"-", 'l'}, {"*", 'l'}, {"/", 'l'}, {"^", 'r'}, {"(", 'l'}, {")", 'l'}}; //operator associativity
+
 
     stack<string> operate;
     queue<string> que;
 
     for (int i = 0; i < input.length(); ++i) {
-        string s = input.substr(i, i + 1);
+        string s = input.substr(i, 1);
         if (isNumber(s)) {
             que.push(s);
         }
-        //add function option later, not ready yet
-        else if (isoperator(s)) { //checking if c is an operator
-            while (operate.size() != 0 && operate.top() != "(" && (m[operate.top()] > m[s] || ((m[s] == m[operate.top()] && assoc[s] == 'l')))) { 
+        //edit mechanism of this part later
+        else if (isfunction(s)) {
+            operate.push(s);
+        }
+        else if (isoperator(s)) {
+            while (operate.size() != 0 && operate.top() != "(" && (m[operate.top()] > m[s] || (m[s] == m[operate.top()] && assoc[s] == 'l'))) { 
                 que.push(operate.top());
                 operate.pop();
             }
@@ -95,20 +113,22 @@ double parse(string input)
         }
     }
     
-    for (int i = 0; i < operate.size(); ++i) {
+    const int osize = operate.size();
+    for (int i = 0; i < osize; ++i) {
         que.push(operate.top());
         operate.pop();
     }
 
-    return evaluate(que);
+    return que;
 }
 
 int main()
 {
-    cout << "Enter: ";
+    cout << "Enter: \n";
     string input;
     getline(cin, input);
     input.erase(remove_if(input.begin(), input.end(), ::isspace), input.end());
-    
-    cout << parse(input) << "\n";
+
+    cout << "answer: \n";
+    cout << evaluate(parse(input));
 }
