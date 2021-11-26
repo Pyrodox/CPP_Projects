@@ -9,7 +9,7 @@
 using std::cout; using std::string; using std::getline;
 using std::vector; using std::stack; using std::queue;
 using std::invalid_argument; using std::map; using std::function;
-using std::isinf; using std::isnan; using std::cin;
+using std::isinf; using std::isnan; using std::cin; using std::exception;
 
 constexpr unsigned int str2int(const char* str, int h = 0) //string to int conversion for switch case purposes
 {
@@ -35,6 +35,8 @@ double operation(string s, double v1, double v2) //operations
         case str2int("-"):
             return v1 - v2;
         case str2int("*"):
+            return v1 * v2;
+        case str2int("#"): //for negative powers
             return v1 * v2;
         case str2int("/"):
             return v1 / v2;
@@ -72,7 +74,7 @@ double func(string s, double v, double v2 = 0) //functions
              if (v <= 0) {
                 return INFINITY;
             }
-            return log(v) / log(v2);
+            return log(v2) / log(v);
         case str2int("sqrt"):
             return sqrt(v);
         case str2int("cbrt"):
@@ -94,16 +96,16 @@ double func(string s, double v, double v2 = 0) //functions
             return acos(1 / v);
         case str2int("acsc"):
             return asin(1 / v);
-        default: //acot
+        case str2int("acot"): //acot
             return atan(1 / v);
-        /*case str2int("!"):
-            return tgamma(v1 + 1);*/
+        default:
+            return tgamma(v + 1);
     }
 }
 
 bool isOperator(string s) //checks if string is operator
 {
-    vector<string> v {"+", "-", "*", "/", "^"};
+    vector<string> v {"+", "-", "*", "/", "^", "#"};
 
     return find(v.begin(), v.end(), s) != v.end();
 }
@@ -165,49 +167,52 @@ double evaluate(queue<string> q) //evaluates reverse polish notation given by pa
 
 vector<string> lex(string input) //tokenizes input
 {
-    for (int i = 0; i < input.length() - 1; ++i) {
-        if (isNumber(input.substr(i, 1)) && !isOperator(input.substr(i + 1, 1)) && input.substr(i + 1, 1) != "(" && input.substr(i + 1, 1) != ")"
-         && !isNumber((input.substr(i + 1, 1)))) {
+    for (int i = 0; i < input.length() - 1; ++i) { //checks if a number is next to a function in order to multiply them
+        if (isdigit(input[i]) && isalpha(input[i + 1])) {
             input = input.substr(0, i + 1) + "*" + input.substr(i + 1);
         }
     }
+
     string buffer = "";
     vector<string> output;
     for (int i = 0; i < input.length(); ++i) {
-        if (input.substr(i, 1) == "-") {
+        if (input[i] == '-') {
             output.push_back(buffer);
-            if (output.size() != 0 && (output[output.size() - 1] == ")" || isNumber(output[output.size() - 1]))) {
+            if (output.size() != 0 && (output[output.size() - 1] == ")" || isNumber(output[output.size() - 1]))) { //subtraction
                 output.push_back(input.substr(i, 1));
-                buffer = "";
             }
-            else {
-                bool paren = false;
-                if (output[output.size() - 1] == "^") {
-                    output.push_back("(");
-
-                    paren = true;
+            else { //negative val
+                string a = output[output.size() - 2];
+                output.push_back("-1");
+                if (a == "^") {
+                    output.push_back("#");
                 }
-                buffer = "-1";
-                output.push_back(buffer);
-                buffer = "";
-                output.push_back("*");
+                else {
+                    output.push_back("*");
+                }
             }
+            buffer = "";
         }
-        else if (isOperator(input.substr(i, 1)) || input.substr(i, 1) == "(" || input.substr(i, 1) == ")") {
+        else if (isOperator(input.substr(i, 1)) || input[i] == '(' || input[i] == ')') { //operator or parenthesis
             output.push_back(buffer);
             output.push_back(input.substr(i, 1));
             buffer = "";
         }
-        else if (input.substr(i, 1) == ",") {
+        else if (input[i] == ',') { //comma
             output.push_back(buffer);
             buffer = "";
         }   
-        else {
+        else { //number
             buffer += input.substr(i, 1);
         }
     }
+    
     output.push_back(buffer);
     output.erase(remove(output.begin(), output.end(), ""), output.end());
+    if (count(output.begin(), output.end(), "(") != count(output.begin(), output.end(), ")")) {
+        throw invalid_argument("Error: mismatched parentheses");
+    }
+
     for (int i = 1; i < output.size(); ++i) {
         if (output[i] == "(" && (isNumber(output[i - 1]) || output[i - 1] == ")")) {
             output.insert(output.begin() + i, "*");
@@ -219,7 +224,7 @@ vector<string> lex(string input) //tokenizes input
 
 queue<string> parse(string input) //converts vector of tokens to reverse polish notation
 {
-    map<string, int> m {{"+", 1}, {"-", 1}, {"*", 2}, {"/", 2}, {"^", 3}, {"(", 4}, {")", 4}}; //operator precedence
+    map<string, int> m {{"+", 1}, {"-", 1}, {"*", 2}, {"/", 2}, {"^", 3}, {"#", 4}}; //operator precedence
     map<string, char> assoc {{"+", 'l'}, {"-", 'l'}, {"*", 'l'}, {"/", 'l'}, {"^", 'r'}, {"(", 'l'}, {")", 'l'}}; //operator and parenthesis associativity
 
     stack<string> operate;
@@ -234,7 +239,7 @@ queue<string> parse(string input) //converts vector of tokens to reverse polish 
         if (isNumber(s)) {
             que.push(s);
         }
-        else if (isFunction(s)) {
+        else if (isFunction(s) || s == "(") {
             operate.push(s);
         }
         else if (isOperator(s)) {
@@ -244,10 +249,10 @@ queue<string> parse(string input) //converts vector of tokens to reverse polish 
             }
             operate.push(s);
         }
-        else if (s == "(") {
-            operate.push(s);
-        }
         else if (s == ")") {
+            if (operate.size() < 1) {
+                throw invalid_argument("Error: right parenthesis at start of expression");
+            }
             while (operate.top() != "(") {
                 que.push(operate.top());
                 operate.pop();
@@ -282,15 +287,19 @@ queue<string> parse(string input) //converts vector of tokens to reverse polish 
 
 int main()
 {
-    cout << "Enter (trig functions are in radians and use parenthesis for functions like sin() and ln()): \n";
+    cout << "This calculator is currently only in the domain of real numbers.\n";
+    cout << "Trig functions are in radians, and 3.142 will be changed to an approximation of pi and 2.718 will be changed to an approximation of e.\n";
+    cout << "Enter (use parenthesis for functions like ln()): \n";
     string input;
     getline(cin, input);
     input.erase(remove_if(input.begin(), input.end(), ::isspace), input.end()); //removes spaces from input
 
+    cout << "\n" << __cplusplus << "\n";
+
     double val;
     try { //if bad input, tells user what's wrong, otherwise continues as normal
         val = evaluate(parse(input));
-    } catch (const invalid_argument& e) {
+    } catch (const exception& e) {
         cout << e.what();
         return 1;
     }
