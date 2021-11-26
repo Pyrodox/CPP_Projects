@@ -151,7 +151,15 @@ double evaluate(queue<string> q) //evaluates reverse polish notation given by pa
 
     for (int i = 0; i < qsize; ++i) {
         if (isNumber(q.front())) {
-            valstack.push(stod(q.front()));
+            if (q.front() == "3.142") {
+                valstack.push((long double) acos(-1));
+            }
+            else if (q.front() == "2.718") {
+                valstack.push((long double) exp(1));
+            }
+            else {
+                valstack.push(stod(q.front()));
+            }
             q.pop();
         }
         else if (isOperator(q.front())) {
@@ -201,8 +209,15 @@ vector<string> lex(string input) //tokenizes input
         else if (input[i] == ',') { //comma
             output.push_back(buffer);
             buffer = "";
-        }   
-        else { //number
+        }
+        else if (input[i] == 'e' && (i == 0 || !isalpha(input[i - 1]))) { //e
+            output.push_back("2.718");
+        }
+        else if (input[i] == 'p' && input[i + 1] == 'i') { //pi
+            input = input.substr(0, i) + input.substr(i + 1);
+            output.push_back("3.142");
+        }
+        else { //number or function
             buffer += input.substr(i, 1);
         }
     }
@@ -231,7 +246,7 @@ queue<string> parse(string input) //converts vector of tokens to reverse polish 
     queue<string> que;
 
     vector<string> tokens = lex(input);
-    for (int i = 0; i < tokens.size(); ++i) {
+    for (int i = 0; i < tokens.size(); ++i) { //checking the vector of tokens
         cout << "\"" << tokens[i] << "\" ";
     }
     for (int i = 0; i < tokens.size(); ++i) {
@@ -274,38 +289,38 @@ queue<string> parse(string input) //converts vector of tokens to reverse polish 
         operate.pop();
     }
 
-    cout << "\n";
+    /*cout << "\n";
     queue<string> q2 = que;
     const int q2size = q2.size();
-    for (int i = 0; i < q2size; ++i) {
+    for (int i = 0; i < q2size; ++i) { checking queue here
         cout << q2.front() << " ";
         q2.pop();
-    }
+    }*/
 
     return que;
 }
 
 int main()
 {
-    cout << "This calculator is currently only in the domain of real numbers.\n";
-    cout << "Trig functions are in radians, and 3.142 will be changed to an approximation of pi and 2.718 will be changed to an approximation of e.\n";
+    cout << "This calculator is currently only in the domain of real numbers. Trig functions are in radians. \n";
+    cout << "3.142 and 2.718 are assumed as pi and e respectively (so type 3.1420 for example if you want 3.142 instead).\n";
     cout << "Enter (use parenthesis for functions like ln()): \n";
+
     string input;
     getline(cin, input);
     input.erase(remove_if(input.begin(), input.end(), ::isspace), input.end()); //removes spaces from input
 
-    cout << "\n" << __cplusplus << "\n";
-
     double val;
-    try { //if bad input, tells user what's wrong, otherwise continues as normal
+    try {
         val = evaluate(parse(input));
     } catch (const exception& e) {
         cout << e.what();
         return 1;
     }
 
-    cout << "\nanswer: \n";
-    if (isnan(val) || isinf(val)) { //if undefined
+    cout.precision(16);
+    cout << "answer: \n";
+    if (isnan(val) || isinf(val)) {
         cout << "undefined";
     }
     else {
