@@ -7,10 +7,12 @@
 #include <cmath>
 #include <functional>
 #include <complex>
-using std::cout; using std::string; using std::getline; using std::complex;
+using std::cout; using std::string; using std::getline; using std::complex; using std::abs;
 using std::vector; using std::stack; using std::queue; using std::transform;
-using std::invalid_argument; using std::map; using std::function;
+using std::invalid_argument; using std::map; using std::function; using namespace std::literals;
 using std::isinf; using std::isnan; using std::cin; using std::exception;
+
+typedef complex<double> cmpd;
 
 constexpr unsigned int str2int(const char* str, int h = 0) //string to int conversion for switch case purposes
 {
@@ -28,7 +30,7 @@ bool isNumber(const string& s) //check if a string is a number
    return (*p == 0);
 }
 
-double operation(string s, double v1, double v2 = 0) //operations
+cmpd operation(string s, cmpd v1, cmpd v2 = 0, bool deg = false) //operations
 {
     switch (str2int(s.c_str())) {
         case str2int("+"):
@@ -44,12 +46,42 @@ double operation(string s, double v1, double v2 = 0) //operations
         case str2int("^"):
             return pow(v1, v2);
         default:
-            return tgamma(v1 + 1); //factorial, technically it is a function but it is conveninent to treat it as an operator here
+            return tgamma(v1.real() + 1); //factorial, technically it is a function but it is conveninent to treat it as an operator here
     }
 }
 
-double func_rad(string s, double v, double v2 = 0) //functions, radians
+cmpd func(string s, cmpd v, cmpd v2 = 0, bool deg = false) //functions, radians
 {
+    double toRad = acos(-1) / 180.0;
+    double toDeg = 180.0 / acos(-1);
+    if (deg) {
+        switch (str2int(s.c_str())) {
+            case str2int("sin"):
+                return sin(v * toRad);
+            case str2int("cos"):
+                return cos(v * toRad);
+            case str2int("tan"):
+                return tan(v * toRad);
+            case str2int("sec"):
+                return 1.0 / cos(v * toRad);
+            case str2int("csc"):
+                return 1.0 / sin(v * toRad);
+            case str2int("cot"):
+                return 1.0 / tan(v * toRad);
+            case str2int("asin"):
+                return asin(v) * toDeg;
+            case str2int("acos"):
+                return acos(v) * toDeg;
+            case str2int("atan"):
+                return atan(v) * toDeg;
+            case str2int("asec"):
+                return acos(1.0 / v) * toDeg;
+            case str2int("acsc"):
+                return asin(1.0 / v) * toDeg;
+            default: //acot
+                return atan(1.0 / v) * toDeg;
+        }
+    }
     switch (str2int(s.c_str())) {
         case str2int("sin"):
             return sin(v);
@@ -58,32 +90,49 @@ double func_rad(string s, double v, double v2 = 0) //functions, radians
         case str2int("tan"):
             return tan(v);
         case str2int("sec"):
-            return 1 / cos(v);
+            return 1 / cos(v.real());
         case str2int("csc"):
-            return 1 / sin(v);
+            return 1 / sin(v.real());
         case str2int("cot"):
-            return 1 / tan(v);
+            return 1 / tan(v.real());
         case str2int("ln"):
-            if (v <= 0) {
+            if (v.real() < 0) {
+                return log(-1 * v.real()) + 3.142i;
+            }
+            if (v.real() == 0) {
                 return INFINITY; //returning INFINITY for domain errors
             }
             return log(v);
         case str2int("log10"):
-             if (v <= 0) {
+            if (v.real() < 0) {
+                return (3.142i + log(-1 * v.real())) / log(10);
+            }
+            if (v.real() == 0) {
                 return INFINITY;
             }
             return log10(v);
         case str2int("log"):
-             if (v <= 0) {
+            if (v.real() == 0 || v.real() == 1 || v2.real() == 0) {
                 return INFINITY;
             }
+            if (v.real() < 0) {
+                if (v2.real() < 0) {
+                    return (log(-1 * v2.real()) + 3.142i) / (log(-1 * v.real()) + 3.142i);
+                }
+                return log(v2.real()) / (log(-1 * v.real()) + 3.142i); 
+            }
+            if (v2.real() < 0) {
+                return (log(-1 * v2.real()) + 3.142i) / log(v);
+            }
             return log(v2) / log(v);
+        case str2int("exp"):
+            return exp(v);
         case str2int("sqrt"):
             return sqrt(v);
         case str2int("cbrt"):
-            return cbrt(v);
+            return pow(v, 1.0 / 3);
         case str2int("root"):
-            if (v == 0) {
+            if (v == 0.0) {
                 return INFINITY;
             }
             return pow(v2, 1.0 / v);
@@ -96,67 +145,11 @@ double func_rad(string s, double v, double v2 = 0) //functions, radians
         case str2int("atan"):
             return atan(v);
         case str2int("asec"):
-            return acos(1 / v);
+            return acos(1.0 / v);
         case str2int("acsc"):
-            return asin(1 / v);
+            return asin(1.0 / v);
         default: //acot
-            return atan(1 / v);
-    }
-}
-
-double func_deg(string s, double v, double v2 = 0) //functions, degrees
-{
-    switch (str2int(s.c_str())) {
-        case str2int("sin"):
-            return sin(v * acos(-1) / 180);
-        case str2int("cos"):
-            return cos(v * acos(-1) / 180);
-        case str2int("tan"):
-            return tan(v * acos(-1) / 180);
-        case str2int("sec"):
-            return 1 / cos(v * acos(-1) / 180);
-        case str2int("csc"):
-            return 1 / sin(v * acos(-1) / 180);
-        case str2int("cot"):
-            return 1 / tan(v * acos(-1) / 180);
-        case str2int("ln"):
-            if (v <= 0) {
-                return INFINITY; //returning INFINITY for domain errors
-            }
-            return log(v);
-        case str2int("log10"):
-             if (v <= 0) {
-                return INFINITY;
-            }
-            return log10(v);
-        case str2int("log"):
-             if (v <= 1) {
-                return INFINITY;
-            }
-            return log(v2) / log(v);
-        case str2int("sqrt"):
-            return sqrt(v);
-        case str2int("cbrt"):
-            return cbrt(v);
-        case str2int("root"):
-            if (v == 0) {
-                return INFINITY;
-            }
-            return pow(v2, 1.0 / v);
-        case str2int("abs"):
-            return abs(v);
-        case str2int("asin"):
-            return asin(v) * acos(-1) / 180;
-        case str2int("acos"):
-            return acos(v) * acos(-1) / 180;
-        case str2int("atan"):
-            return atan(v) * acos(-1) / 180;
-        case str2int("asec"):
-            return acos(1 / v) * acos(-1) / 180;
-        case str2int("acsc"):
-            return asin(1 / v) * acos(-1) / 180;
-        default: //acot
-            return atan(1 / v) * acos(-1) / 180;
+            return atan(1.0 / v);
     }
 }
 
@@ -169,50 +162,50 @@ bool isOperator(string s) //checks if string is operator
 
 bool isFunction(string s) //checks if string is function
 {
-    vector<string> v {"sin", "cos", "tan", "sec", "csc", "cot", "ln", "log10", "sqrt", "!", "cbrt", "abs", "asin", "acos", "atan", "asec", "acsc", "acot", "log", "root"};
+    vector<string> v {"sin", "cos", "tan", "sec", "csc", "cot", "ln", "log10", "exp", "sqrt", "!", "cbrt", "abs", "asin", "acos", "atan", "asec", "acsc", "acot", "log", "root"};
 
     return find(v.begin(), v.end(), s) != v.end();
 }
 
 int paramamnt(string s) //checks parameter amount of a function
 {
-    vector<string> v1 {"sin", "cos", "tan", "sec", "csc", "cot", "ln", "log10", "sqrt", "cbrt", "abs", "asin", "acos", "atan", "asec", "acsc", "acot"};
+    vector<string> v1 {"sin", "cos", "tan", "sec", "csc", "cot", "ln", "log10", "exp", "sqrt", "cbrt", "abs", "asin", "acos", "atan", "asec", "acsc", "acot"};
     vector<string> v2 {"log", "root"};
 
     return find(v1.begin(), v1.end(), s) != v1.end() ? 1 : 2;
 }
 
-void newval(int n, stack<double> &s, queue<string> &q, function<double(string o, double a, double b)> func) //evaluates using either the operate or the func function
+void newval(int n, stack<cmpd> &s, queue<string> &q, function<cmpd(string o, cmpd a, cmpd b, bool deg)> func, bool isdeg) //evaluates using either the operate or the func function
 {
     if (s.size() < n) {
         throw invalid_argument("Error: invalid expression");
     }
 
-    double a = s.top();
+    cmpd a = s.top();
     s.pop();
     if (n == 1) {
-        s.push(func(q.front(), a, 0));
+        s.push(func(q.front(), a, 0, isdeg));
     }
     else {
-        double b = s.top();
+        cmpd b = s.top();
         s.pop();
-        s.push(func(q.front(), b, a));
+        s.push(func(q.front(), b, a, isdeg));
     }
     q.pop();
 }
 
-double evaluate(queue<string> q, bool isdeg) //evaluates reverse polish notation given by parse function
+cmpd evaluate(queue<string> q, bool isdeg) //evaluates reverse polish notation given by parse function
 {
-    stack<double> valstack;
+    stack<cmpd> valstack;
     const int qsize = q.size();
 
     for (int i = 0; i < qsize; ++i) {
         if (isNumber(q.front())) {
             if (q.front() == "3.142") {
-                valstack.push((long double) acos(-1));
+                valstack.push(acos(-1));
             }
             else if (q.front() == "2.718") {
-                valstack.push((long double) exp(1));
+                valstack.push(exp(1));
             }
             else {
                 valstack.push(stod(q.front()));
@@ -220,15 +213,10 @@ double evaluate(queue<string> q, bool isdeg) //evaluates reverse polish notation
             q.pop();
         }
         else if (isOperator(q.front())) {
-            q.front() == "!" ? newval(1, valstack, q, operation) : newval(2, valstack, q, operation);
+            q.front() == "!" ? newval(1, valstack, q, operation, isdeg) : newval(2, valstack, q, operation, isdeg);
         }
         else if (isFunction(q.front())) {
-            if (isdeg) {
-                paramamnt(q.front()) == 1 ? newval(1, valstack, q, func_deg) : newval(2, valstack, q, func_deg);
-            }
-            else {
-                paramamnt(q.front()) == 1 ? newval(1, valstack, q, func_rad) : newval(2, valstack, q, func_rad);
-            }
+            paramamnt(q.front()) == 1 ? newval(1, valstack, q, func, isdeg) : newval(2, valstack, q, func, isdeg);
         }
     }
 
@@ -286,13 +274,13 @@ queue<string> parse(vector<string> tokens) //converts vector of tokens to revers
         operate.pop();
     }
 
-    /*cout << "\n";
+    cout << "\n";
     queue<string> q2 = que;
     const int q2size = q2.size();
-    for (int i = 0; i < q2size; ++i) { checking queue here
+    for (int i = 0; i < q2size; ++i) { //checking queue here
         cout << q2.front() << " ";
         q2.pop();
-    }*/
+    }
 
     return que;
 }
@@ -314,7 +302,10 @@ vector<string> lex(string input) //tokenizes input
                 output.push_back(input.substr(i, 1));
             }
             else { //negative val
-                string a = output[output.size() - 2];
+                string a = "";
+                if (output.size() >= 2) {
+                    string a = output[output.size() - 2];
+                }
                 output.push_back("-1");
                 if (a == "^") {
                     output.push_back("#");
@@ -335,12 +326,18 @@ vector<string> lex(string input) //tokenizes input
             output.push_back(",");
             buffer = "";
         }
-        else if (input[i] == 'e' && (i == 0 || input[i - 1] == 'i' || input[i - 1] == 'e' || !isalpha(input[i - 1]))) { //e
+        else if (input[i] == 'e' && (input[i + 1] != 'x' && input[i + 1] != 'c' || i == input.length() - 1)) { //e
             output.push_back("2.718");
         }
         else if (input[i] == 'p' && input[i + 1] == 'i') { //pi
             input = input.substr(0, i) + input.substr(i + 1);
             output.push_back("3.142");
+        }
+        else if (input[i] == 'i' && (i == 0 || input[i - 1] != 's')) {
+            output.push_back("sqrt");
+            output.push_back("(");
+            output.push_back("-1");
+            output.push_back(")");
         }
         else { //number or function
             buffer += input.substr(i, 1);
@@ -374,9 +371,11 @@ vector<string> lex(string input) //tokenizes input
 
 int main()
 {
-    cout << "This calculator is currently only in the domain of real numbers. Trig functions are in radians. \n";
-    cout << "3.142 and 2.718 are assumed as pi and e respectively (so type 3.1420 for example if you want 3.142 instead).\n";
-    cout << "Radians or Degrees? Enter rad or deg. (default is radians): ";
+    cout << "This calculator has experimental support with complex numbers.\n";
+    cout << "3.142 and 2.718 are assumed as pi and e respectively (type 3.1420 for example if you want 3.142 instead of pi).\n";
+    cout << "If the absolute value of a number is <= 0.0001, it will be rounded to 0.\n";
+
+    cout << "\nRadians or Degrees? Enter rad or deg. (default is radians): ";
     string measure;
     cin >> measure;
     transform(measure.begin(), measure.end(), measure.begin(), ::tolower);
@@ -393,11 +392,7 @@ int main()
     getline(cin, input);
     input.erase(remove_if(input.begin(), input.end(), ::isspace), input.end()); //removes spaces from input
 
-    const complex<double> i(0.0,1.0);
-
-    cout << i << "\n";
-
-    double val;
+    cmpd val;
     try {
         val = evaluate(parse(lex(input)), isdeg);
     } catch (const exception& e) {
@@ -406,11 +401,32 @@ int main()
     }
 
     cout.precision(16);
-    cout << "answer: \n";
-    if (isnan(val) || isinf(val)) {
+    cout << "\nanswer: \n";
+    if (isnan(val.real()) || isinf(val.real())) {
         cout << "undefined";
     }
     else {
-        cout << val;
+       if (abs(val.real()) <= 0.0001) { //used a tolerance value here because for some reason sqrt(-1)^2 evaluated into -1 + a very small constant times i so...
+            if (abs(val.imag()) <= 0.0001) { //lots of if statements for formatting purposes
+                cout << 0;
+            }
+            else {
+                if (val.imag() == 1) {
+                    cout << "i";
+                }
+                else if (val.imag() == -1) {
+                    cout << "-i";
+                }
+                else {
+                    cout << val.imag() << "i";
+                }
+            }
+        }
+        else if (abs(val.imag()) <= 0.0001) {
+            cout << val.real();
+        }
+        else {
+            cout << val.real() << " + " << val.imag() << "i";
+        }
     }
 }
