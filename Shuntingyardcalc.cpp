@@ -96,17 +96,11 @@ cmpd func(string s, cmpd v, cmpd v2 = 0, bool deg = false) //functions, radians
         case str2int("cot"):
             return 1 / tan(v.real());
         case str2int("ln"):
-            if (v.real() < 0) {
-                return log(-1 * v.real()) + 3.142i;
-            }
             if (v.real() == 0) {
                 return INFINITY; //returning INFINITY for domain errors
             }
             return log(v);
         case str2int("log10"):
-            if (v.real() < 0) {
-                return (3.142i + log(-1 * v.real())) / log(10);
-            }
             if (v.real() == 0) {
                 return INFINITY;
             }
@@ -114,15 +108,6 @@ cmpd func(string s, cmpd v, cmpd v2 = 0, bool deg = false) //functions, radians
         case str2int("log"):
             if (v.real() == 0 || v.real() == 1 || v2.real() == 0) {
                 return INFINITY;
-            }
-            if (v.real() < 0) {
-                if (v2.real() < 0) {
-                    return (log(-1 * v2.real()) + 3.142i) / (log(-1 * v.real()) + 3.142i);
-                }
-                return log(v2.real()) / (log(-1 * v.real()) + 3.142i); 
-            }
-            if (v2.real() < 0) {
-                return (log(-1 * v2.real()) + 3.142i) / log(v);
             }
             return log(v2) / log(v);
         case str2int("exp"):
