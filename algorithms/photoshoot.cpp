@@ -4,29 +4,39 @@ using ll = long long;
 
 int main()
 {
-    int n;
+    ll n;
     ifstream fin("photo.in");
     ofstream fout("photo.out");
     fin >> n;
-    vector<int> b(n - 1);
-    for (int i = 0; i < n - 1; ++i) {
+    vector<ll> b(n - 1);
+    for (ll i = 0; i < n - 1; ++i) {
         fin >> b[i];
     }
-    vector<int> a(n);
-    bool flag = true;
-    iota(a.begin(), a.end(), 1);
-    do {
-        for (int i = 0; i < a.size() - 1; ++i) {
-            if (a[i] + a[i + 1] != b[i]) {
-                break;
-            }
-            if (i == a.size() - 2) {
-                for (int j = 0; j < a.size() - 1; ++j) {
-                    fout << a[j] << " ";
-                }
-                fout << a[a.size() - 1];
-                flag = false;
-            }
+    map<ll, ll> check;
+    for (ll i = 1; i <= n; ++i) {
+        check[i]++;
+    }
+    vector<ll> a(n);
+    vector<vector<ll>> aa;
+    for (ll i = 0; i < b[0]; ++i) {
+        a[0] = b[0] - i;
+        int j = 1;
+        while (j < n - 1 && b[j - 1] - a[j - 1] > 0) {
+            a[j] = b[j - 1] - a[j - 1];
+            ++j;
         }
-    } while (next_permutation(a.begin(), a.end()) && flag);
+        a[a.size() - 1] = b[b.size() - 1] - a[a.size() - 2];
+        map<ll, ll> tmpmap;
+        for (ll k = 0; k < n; ++k) {
+            tmpmap[a[k]]++;
+        }
+        if (check == tmpmap) {
+            aa.push_back(a);
+        }
+    }
+    sort(aa.begin(), aa.end());
+    for (ll i = 0; i < aa[0].size() - 1; ++i) {
+        fout << aa[0][i] << " ";
+    }
+    fout << aa[0][aa[0].size() - 1];
 }
