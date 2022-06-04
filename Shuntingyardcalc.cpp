@@ -90,11 +90,11 @@ cmpd func(string s, cmpd v, cmpd v2 = 0, bool deg = false) //functions, radians
         case str2int("tan"):
             return tan(v);
         case str2int("sec"):
-            return 1 / cos(v.real());
+            return 1.0 / cos(v);
         case str2int("csc"):
-            return 1 / sin(v.real());
+            return 1.0 / sin(v);
         case str2int("cot"):
-            return 1 / tan(v.real());
+            return 1.0 / tan(v);
         case str2int("ln"):
             if (v.real() == 0) {
                 return INFINITY; //returning INFINITY for domain errors

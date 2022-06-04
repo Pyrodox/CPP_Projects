@@ -1,0 +1,38 @@
+{
+    // Enables/Disables the coloring of the brackets themselves
+    "editor.bracketPairColorization.enabled": false, 
+
+    // Enables/Disables the highlighting of the bracket-pair guides
+    "editor.guides.highlightActiveBracketPair": false,
+    "editor.guides.highlightActiveIndentation": false,
+
+    // Enables/Disables the Coloring of the bracket-pair guides.
+    "editor.guides.bracketPairs": false, 
+    "editor.guides.indentation": false,
+    "files.associations": {
+        "utility": "cpp",
+        "vector": "cpp",
+        "unordered_map": "cpp",
+        "cstdlib": "cpp",
+        "deque": "cpp",
+        "list": "cpp",
+        "xstring": "cpp",
+        "xiosbase": "cpp",
+        "initializer_list": "cpp",
+        "queue": "cpp",
+        "type_traits": "cpp",
+        "xhash": "cpp",
+        "xtree": "cpp",
+        "xutility": "cpp",
+        "xlocinfo": "cpp",
+        "atomic": "cpp",
+        "ios": "cpp",
+        "system_error": "cpp",
+        "iomanip": "cpp",
+        "cmath": "cpp",
+        "iostream": "cpp",
+        "random": "cpp",
+        "stack": "cpp",
+        "map": "cpp"
+    }
+}
