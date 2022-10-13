@@ -33,6 +33,12 @@
         "iostream": "cpp",
         "random": "cpp",
         "stack": "cpp",
-        "map": "cpp"
+        "map": "cpp",
+        "bitset": "cpp",
+        "chrono": "cpp",
+        "iosfwd": "cpp",
+        "*.tcc": "cpp",
+        "functional": "cpp",
+        "regex": "cpp"
     }
 }

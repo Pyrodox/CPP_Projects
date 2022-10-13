@@ -37,7 +37,7 @@ int main()
         mp[a]++;
     }
     for (ll a : subs1) {
-        if (*lower_bound(subs2.begin(), subs2.end(), x - a) == x - a) {
+        if (binary_search(subs2.begin(), subs2.end(), x - a)) {
             ans += mp[x - a]; 
         }
     }

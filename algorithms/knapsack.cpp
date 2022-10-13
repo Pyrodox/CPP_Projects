@@ -1,49 +1,52 @@
-#include <bits/stdc++.h>
+#include<bits/stdc++.h>
 using namespace std;
-using ll = long long;
-
-int main()
-{
-    ll n, t, w;
-    cin >> t;
-    while (t--) {
-        cin >> n >> w;
-        ll halfweight = ceil((double) w / 2);
-        vector<ll> v(n);
-        bool flag = false;
-        map<ll, vector<ll>> m;
-        for (ll i = 0; i < n; ++i) {
-            cin >> v[i];
-            m[v[i]].push_back(i);
-            if (v[i] >= halfweight && v[i] <= w) {
-                cout << 1 << "\n" << i + 1 << "\n";
-                flag = true;
-                break;
+#define int long long
+ 
+pair<int, int>a[200005];
+ 
+ 
+int32_t main(){
+    int t=1;
+    cin>>t;
+    while(t--){
+        int n, w;cin>>n>>w;
+        for(int i=1;i<=n;i++){
+            cin>>a[i].first;
+            a[i].second=i;
+        }
+        sort(a+1, a+n+1);
+        int ff=0, ind=-1;
+        for(int i=n;i>=1;i--){
+            if(a[i].first<=w and a[i].first>=(w+1)/2){
+                ff=1;
+                ind=a[i].second;
             }
         }
-        if (flag) {
+        if(ff){
+            cout<<1<<endl;
+            cout<<ind<<endl;
             continue;
         }
-        ll totalweight = 0;
-        vector<ll> outputvec;
-        sort(v.begin(), v.end());
-        for (ll i = 0; i < n; ++i) {
-            totalweight += v[i];
-            outputvec.push_back(m[v[i]][m[v[i]].size() - 1]);
-            m[v[i]].pop_back();
-            if (totalweight >= halfweight && totalweight <= w) {
-                sort(outputvec.begin(), outputvec.end());
-                cout << outputvec.size() << "\n";
-                for (auto val : outputvec) {
-                    cout << val + 1 << " ";
-                }
-                cout << "\n";
+        int ss=0;
+        vector<int>pp;
+        for(int i=n;i>=1;i--){
+            if(a[i].first<(w+1)/2){
+                ss+=a[i].first;
+                pp.push_back(a[i].second);
+            }
+            if(ss>=(w+1)/2){
+                ff=1;
                 break;
             }
-            if (totalweight > w) {
-                cout << -1 << "\n";
-                break;
-            }   
         }
+        if(ff){
+            cout<<pp.size()<<endl;
+            sort(pp.begin(), pp.end());
+            for(auto i:pp){
+                cout<<i<<" ";
+            }
+            cout<<endl;
+        }
+        else cout<<-1<<endl;
     }
 }

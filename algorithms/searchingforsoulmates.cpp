@@ -5,68 +5,73 @@ using ll = long long;
 int main()
 {
     ll n;
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
     cin >> n;
-    vector<vector<ll>> v;
-    for (int i = 0; i < n; ++i) {
-        vector<ll> v2(2);
-        cin >> v2[0] >> v2[1];
-        v.push_back(v2);
-    }
-    for (int i = 0; i < n; ++i) {
-        ll cnt = 0;
-        while (v[i][0] != v[i][1]) {
-            if (v[i][0] > v[i][1]) {
-                if (v[i][0] % 2 == 0) {
-                    v[i][0] /= 2;
-                    ++cnt;
-                }
-                else {
-                    v[i][0]++;
-                    v[i][0] /= 2;
-                    cnt += 2;
-                }
-            }
-            else {
-                ll numfind = v[i][1] / 2;
-                if (v[i][0] * 2 > v[i][1]) {    
-                    if (v[i][1] - v[i][0] < ) {
-                        
-                    }
-                }
-                else {
-                    if (v[i][1] % 2 == 0) {
-                        if (v[i][1] / 2 - v[i][0] < v[i][1] - v[i][0] * 2) {
-                            ll a = v[i][1] / 2 - v[i][0];
-                            v[i][0] += a;
-                            v[i][0] *= 2;
-                            cnt += a + 1;
-                        }
-                        else {
-                            ll a = v[i][1] - v[i][0] * 2;
-                            v[i][0] *= 2;
-                            v[i][0] += a;
-                            cnt += a + 1;
-                        }
-                    }
-                    else {
-                        if ((v[i][1] - 1) / 2 - v[i][0] < v[i][1] - v[i][0] * 2) {
-                            ll b = (v[i][1] - 1) / 2 - v[i][0];
-                            v[i][0] += b;
-                            v[i][0] *= 2;
-                            ++v[i][0];
-                            cnt += b + 2;
-                        }
-                        else {
-                            ll b = v[i][1] - v[i][0] * 2;
-                            v[i][0] *= 2;
-                            v[i][0] += b;
-                            cnt += b + 1;
-                        }
-                    }
-                }
-            }
-            cout << v[i][0] << "\n";
+    while (n--) {
+        ll c1, c2, tmpc1, tmpc2, movesc1 = 0, movesc2 = 0;
+        cin >> c1 >> c2;
+        tmpc1 = c1, tmpc2 = c2;
+        ll potentialmoves = 1e18;
+        if (c2 >= c1) {
+            potentialmoves = c2 - c1;
         }
-        cout << cnt << "\n";
+        while (tmpc1 != tmpc2) {
+            if (tmpc1 >= 2 * tmpc2) {
+                if (tmpc1 % 2 == 1) {
+                    ++movesc1;
+                    ++tmpc1;
+                    if (tmpc1 == c1) {
+                        movesc1 = 0;
+                    }
+                }
+                tmpc1 /= 2;
+                ++movesc1;
+                if (tmpc1 == c1) {
+                    movesc1 = 0;
+                }
+            }
+            else if (tmpc1 > tmpc2 && tmpc1 < 2 * tmpc2) {
+                if (tmpc1 % 2 == 1) {
+                    ++movesc1;
+                    ++tmpc1;
+                    if (tmpc1 == c1) {
+                        movesc1 = 0;
+                    }
+                }
+                tmpc1 /= 2;
+                ++movesc1;
+                if (tmpc1 == c1) {
+                    movesc1 = 0;
+                }
+                potentialmoves = min(potentialmoves, movesc1 + movesc2 + tmpc2 - tmpc1);
+                if (tmpc2 % 2 == 1) {
+                    --tmpc2;
+                    ++movesc2;
+                }
+                tmpc2 /= 2;
+                ++movesc2;
+            }
+            else if (2 * tmpc1 <= tmpc2) {
+                tmpc1 *= 2;
+                ++movesc1;
+                if (tmpc1 == c1) {
+                    movesc1 = 0;
+                }
+            }
+            else if (tmpc1 < tmpc2) {
+                potentialmoves = min(potentialmoves, movesc1 + movesc2 + tmpc2 - tmpc1);
+                if (tmpc2 % 2 == 1) {
+                    ++movesc2;
+                    --tmpc2;
+                }
+                tmpc2 /= 2;
+                ++movesc2;
+                if (tmpc2 >= tmpc1) {
+                    potentialmoves = min(potentialmoves, movesc1 + movesc2 + tmpc2 - tmpc1);
+                }
+            }
+        }
+        cout << potentialmoves << "\n";
     }
 }
